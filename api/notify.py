@@ -3,25 +3,49 @@ import hmac
 import html
 import json
 import os
+import re
 import urllib.request
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler
 
 
+def post_json(url, payload, headers=None):
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode(),
+        headers={"Content-Type": "application/json", **(headers or {})},
+    )
+    urllib.request.urlopen(req, timeout=4).read()
+
+
 def send_telegram(text):
     token = os.environ["TELEGRAM_TOKEN"]
-    payload = json.dumps({
-        "chat_id": os.environ["TELEGRAM_CHAT_ID"],
-        "text": text,
-        "parse_mode": "HTML",
-        "disable_web_page_preview": True,
-    }).encode()
-    req = urllib.request.Request(
+    post_json(
         f"https://api.telegram.org/bot{token}/sendMessage",
-        data=payload,
-        headers={"Content-Type": "application/json"},
+        {
+            "chat_id": os.environ["TELEGRAM_CHAT_ID"],
+            "text": text,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True,
+        },
     )
-    urllib.request.urlopen(req, timeout=5).read()
+
+
+def send_discord(text):
+    # Optional: Discord is skipped when the webhook URL is not configured.
+    url = os.environ.get("DISCORD_WEBHOOK_URL")
+    if not url:
+        return
+    post_json(
+        url,
+        {
+            "content": text,
+            # Never let a branch name or user trigger @everyone / @here pings.
+            "allowed_mentions": {"parse": []},
+        },
+        # Discord often rejects the default Python User-Agent with a 403.
+        headers={"User-Agent": "deploy-notify"},
+    )
 
 
 def parse_time(value):
@@ -49,9 +73,9 @@ def run_duration(run):
     return format_duration((finished - started).total_seconds())
 
 
-def build_message(data, action):
+def build_parts(data, action):
+    """Collect the message content once; each messenger formats it its own way."""
     run = data["workflow_run"]
-    esc = html.escape
     actor = (run.get("actor") or {}).get("login") or "?"
     branch = run.get("head_branch") or "?"
     conclusion = run.get("conclusion") or "unknown"
@@ -63,18 +87,39 @@ def build_message(data, action):
         status = f"Result: {conclusion}"
 
     lines = [
-        f"{icon} <b>{esc(data['repository']['full_name'])}</b>",
-        f"User: {esc(actor)}",
-        f"Branch: {esc(branch)}",
-        f"Workflow: {esc(run.get('name') or '?')}",
-        esc(status),
+        f"User: {actor}",
+        f"Branch: {branch}",
+        f"Workflow: {run.get('name') or '?'}",
+        status,
     ]
     if action == "completed":
         duration = run_duration(run)
         if duration:
             lines.append(f"Duration: {duration}")
-    lines.append(esc(run["html_url"]))
-    return "\n".join(lines)
+
+    return {
+        "icon": icon,
+        "repo": data["repository"]["full_name"],
+        "lines": lines,
+        "url": run["html_url"],
+    }
+
+
+def telegram_text(parts):
+    esc = html.escape
+    body = "\n".join(esc(line) for line in parts["lines"])
+    return f"{parts['icon']} <b>{esc(parts['repo'])}</b>\n{body}\n{esc(parts['url'])}"
+
+
+def escape_discord(text):
+    # Keep names like my_repo_name from turning into italics, etc.
+    return re.sub(r"([\\*_~`>|])", r"\\\1", text)
+
+
+def discord_text(parts):
+    body = "\n".join(escape_discord(line) for line in parts["lines"])
+    # <url> stops Discord from expanding the link into a big preview card.
+    return f"{parts['icon']} **{escape_discord(parts['repo'])}**\n{body}\n<{parts['url']}>"
 
 
 class handler(BaseHTTPRequestHandler):
@@ -109,10 +154,17 @@ class handler(BaseHTTPRequestHandler):
         if action not in ("in_progress", "completed"):
             return self._reply(200, "ignored")
 
-        try:
-            send_telegram(build_message(data, action))
-        except Exception as exc:
-            # The error shows up in the Vercel logs; GitHub still gets a fast response.
-            print(f"telegram send failed: {exc!r}")
+        parts = build_parts(data, action)
+        channels = (
+            ("telegram", send_telegram, telegram_text(parts)),
+            ("discord", send_discord, discord_text(parts)),
+        )
+        for name, send, text in channels:
+            # Each channel has its own try/except: one failing must not block the other.
+            try:
+                send(text)
+            except Exception as exc:
+                # The error shows up in the Vercel logs; GitHub still gets a fast response.
+                print(f"{name} send failed: {exc!r}")
 
         self._reply(200)
