@@ -33,14 +33,14 @@ def format_duration(seconds):
     hours, rest = divmod(seconds, 3600)
     minutes, secs = divmod(rest, 60)
     if hours:
-        return f"{hours} ч {minutes} мин {secs} с"
+        return f"{hours} h {minutes} min {secs} s"
     if minutes:
-        return f"{minutes} мин {secs} с"
-    return f"{secs} с"
+        return f"{minutes} min {secs} s"
+    return f"{secs} s"
 
 
 def run_duration(run):
-    # Время считаем по полям запуска: начало и последнее обновление.
+    # Duration is computed from the run's start time and its last update time.
     try:
         started = parse_time(run["run_started_at"])
         finished = parse_time(run["updated_at"])
@@ -57,22 +57,22 @@ def build_message(data, action):
     conclusion = run.get("conclusion") or "unknown"
 
     if action == "in_progress":
-        icon, status = "🚀", "Запущен"
+        icon, status = "🚀", "Started"
     else:
         icon = {"success": "✅", "failure": "❌"}.get(conclusion, "⚠️")
-        status = f"Результат: {conclusion}"
+        status = f"Result: {conclusion}"
 
     lines = [
         f"{icon} <b>{esc(data['repository']['full_name'])}</b>",
-        f"Пользователь: {esc(actor)}",
-        f"Ветка: {esc(branch)}",
+        f"User: {esc(actor)}",
+        f"Branch: {esc(branch)}",
         f"Workflow: {esc(run.get('name') or '?')}",
         esc(status),
     ]
     if action == "completed":
         duration = run_duration(run)
         if duration:
-            lines.append(f"Время выполнения: {duration}")
+            lines.append(f"Duration: {duration}")
     lines.append(esc(run["html_url"]))
     return "\n".join(lines)
 
@@ -87,7 +87,7 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
-        # Для быстрой проверки в браузере, что функция задеплоена.
+        # Quick browser check that the function is deployed.
         self._reply(200, "deploy-notify is up")
 
     def do_POST(self):
@@ -105,14 +105,14 @@ class handler(BaseHTTPRequestHandler):
 
         data = json.loads(body)
         action = data.get("action")
-        # in_progress: пайплайн начал выполняться; completed: закончился.
+        # in_progress: the pipeline has started running; completed: it has finished.
         if action not in ("in_progress", "completed"):
             return self._reply(200, "ignored")
 
         try:
             send_telegram(build_message(data, action))
         except Exception as exc:
-            # Ошибка попадёт в логи Vercel; GitHub всё равно получает быстрый ответ.
+            # The error shows up in the Vercel logs; GitHub still gets a fast response.
             print(f"telegram send failed: {exc!r}")
 
         self._reply(200)
