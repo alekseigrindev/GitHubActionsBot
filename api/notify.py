@@ -1,8 +1,10 @@
 import hashlib
 import hmac
+import html
 import json
 import os
 import urllib.request
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler
 
 
@@ -11,6 +13,7 @@ def send_telegram(text):
     payload = json.dumps({
         "chat_id": os.environ["TELEGRAM_CHAT_ID"],
         "text": text,
+        "parse_mode": "HTML",
         "disable_web_page_preview": True,
     }).encode()
     req = urllib.request.Request(
@@ -21,17 +24,57 @@ def send_telegram(text):
     urllib.request.urlopen(req, timeout=5).read()
 
 
-def build_message(data):
+def parse_time(value):
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def format_duration(seconds):
+    seconds = max(int(seconds), 0)
+    hours, rest = divmod(seconds, 3600)
+    minutes, secs = divmod(rest, 60)
+    if hours:
+        return f"{hours} ч {minutes} мин {secs} с"
+    if minutes:
+        return f"{minutes} мин {secs} с"
+    return f"{secs} с"
+
+
+def run_duration(run):
+    # Время считаем по полям запуска: начало и последнее обновление.
+    try:
+        started = parse_time(run["run_started_at"])
+        finished = parse_time(run["updated_at"])
+    except (KeyError, TypeError, ValueError, AttributeError):
+        return None
+    return format_duration((finished - started).total_seconds())
+
+
+def build_message(data, action):
     run = data["workflow_run"]
+    esc = html.escape
+    actor = (run.get("actor") or {}).get("login") or "?"
+    branch = run.get("head_branch") or "?"
     conclusion = run.get("conclusion") or "unknown"
-    icon = {"success": "✅", "failure": "❌"}.get(conclusion, "⚠️")
-    actor = (run.get("actor") or {}).get("login", "?")
-    return (
-        f"{icon} {data['repository']['full_name']}\n"
-        f"{run['name']} · ветка {run['head_branch']} · {actor}\n"
-        f"Результат: {conclusion}\n"
-        f"{run['html_url']}"
-    )
+
+    if action == "in_progress":
+        icon, status = "🚀", "Запущен"
+    else:
+        icon = {"success": "✅", "failure": "❌"}.get(conclusion, "⚠️")
+        status = f"Результат: {conclusion}"
+
+    lines = [
+        f"{icon} <b>{esc(data['repository']['full_name'])}</b>",
+        f"Пользователь: {esc(actor)}",
+        f"Ветка: {esc(branch)}",
+        f"Workflow: {esc(run.get('name') or '?')}",
+        esc(status),
+    ]
+    if action == "completed":
+        duration = run_duration(run)
+        if duration:
+            lines.append(f"Время выполнения: {duration}")
+    lines.append(esc(run["html_url"]))
+    return "\n".join(lines)
 
 
 class handler(BaseHTTPRequestHandler):
@@ -61,11 +104,13 @@ class handler(BaseHTTPRequestHandler):
             return self._reply(200, "ignored")
 
         data = json.loads(body)
-        if data.get("action") != "completed":
+        action = data.get("action")
+        # in_progress: пайплайн начал выполняться; completed: закончился.
+        if action not in ("in_progress", "completed"):
             return self._reply(200, "ignored")
 
         try:
-            send_telegram(build_message(data))
+            send_telegram(build_message(data, action))
         except Exception as exc:
             # Ошибка попадёт в логи Vercel; GitHub всё равно получает быстрый ответ.
             print(f"telegram send failed: {exc!r}")
