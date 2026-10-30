@@ -80,22 +80,30 @@ def build_parts(data, action):
     branch = run.get("head_branch") or "?"
     conclusion = run.get("conclusion") or "unknown"
 
-    if action == "in_progress":
-        icon, status = "🚀", "Started"
+    if action == "requested":
+        icon, status = "⏳", "Queued"
+    elif action == "in_progress":
+        icon, status = "🚀", "In progress"
     else:
-        icon = {"success": "✅", "failure": "❌"}.get(conclusion, "⚠️")
-        status = f"Result: {conclusion}"
+        icon = {
+            "success": "✅",
+            "failure": "❌",
+            "cancelled": "🚫",
+            "timed_out": "⏰",
+        }.get(conclusion, "⚠️")
+        status = conclusion.replace("_", " ").capitalize()
 
+    # (icon, label, value): every line except the link gets its own icon.
     lines = [
-        f"User: {actor}",
-        f"Branch: {branch}",
-        f"Workflow: {run.get('name') or '?'}",
-        status,
+        ("👤", "User", actor),
+        ("🌿", "Branch", branch),
+        ("⚙️", "Workflow", run.get("name") or "?"),
+        ("📊", "Status", status),
     ]
     if action == "completed":
         duration = run_duration(run)
         if duration:
-            lines.append(f"Duration: {duration}")
+            lines.append(("⏱️", "Duration", duration))
 
     return {
         "icon": icon,
@@ -107,8 +115,9 @@ def build_parts(data, action):
 
 def telegram_text(parts):
     esc = html.escape
-    body = "\n".join(esc(line) for line in parts["lines"])
-    return f"{parts['icon']} <b>{esc(parts['repo'])}</b>\n{body}\n{esc(parts['url'])}"
+    body = "\n".join(f"{icon} {label}: {esc(value)}" for icon, label, value in parts["lines"])
+    # Blank line separates the title from the details.
+    return f"{parts['icon']} <b>{esc(parts['repo'])}</b>\n\n{body}\n{esc(parts['url'])}"
 
 
 def escape_discord(text):
@@ -117,9 +126,11 @@ def escape_discord(text):
 
 
 def discord_text(parts):
-    body = "\n".join(escape_discord(line) for line in parts["lines"])
+    body = "\n".join(
+        f"{icon} {label}: {escape_discord(value)}" for icon, label, value in parts["lines"]
+    )
     # <url> stops Discord from expanding the link into a big preview card.
-    return f"{parts['icon']} **{escape_discord(parts['repo'])}**\n{body}\n<{parts['url']}>"
+    return f"{parts['icon']} **{escape_discord(parts['repo'])}**\n\n{body}\n<{parts['url']}>"
 
 
 class handler(BaseHTTPRequestHandler):
@@ -150,8 +161,8 @@ class handler(BaseHTTPRequestHandler):
 
         data = json.loads(body)
         action = data.get("action")
-        # in_progress: the pipeline has started running; completed: it has finished.
-        if action not in ("in_progress", "completed"):
+        # requested: queued; in_progress: started running; completed: finished.
+        if action not in ("requested", "in_progress", "completed"):
             return self._reply(200, "ignored")
 
         parts = build_parts(data, action)
