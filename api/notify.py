@@ -97,7 +97,6 @@ def build_parts(data, action):
     lines = [
         ("👤", "User", actor),
         ("🌿", "Branch", branch),
-        ("⚙️", "Workflow", run.get("name") or "?"),
         ("📊", "Status", status),
     ]
     if action == "completed":
@@ -108,6 +107,7 @@ def build_parts(data, action):
     return {
         "icon": icon,
         "repo": data["repository"]["full_name"],
+        "workflow": run.get("name") or "?",
         "lines": lines,
         "url": run["html_url"],
     }
@@ -116,8 +116,9 @@ def build_parts(data, action):
 def telegram_text(parts):
     esc = html.escape
     body = "\n".join(f"{icon} {label}: {esc(value)}" for icon, label, value in parts["lines"])
-    # Blank line separates the title from the details.
-    return f"{parts['icon']} <b>{esc(parts['repo'])}</b>\n\n{body}\n{esc(parts['url'])}"
+    title = f"{parts['icon']} <b>{esc(parts['repo'])}</b>"
+    workflow = f"⚙️ Workflow: <b><i>{esc(parts['workflow'])}</i></b>"
+    return f"{title}\n\n{workflow}\n\n{body}\n\n{esc(parts['url'])}"
 
 
 def escape_discord(text):
@@ -130,7 +131,9 @@ def discord_text(parts):
         f"{icon} {label}: {escape_discord(value)}" for icon, label, value in parts["lines"]
     )
     # <url> stops Discord from expanding the link into a big preview card.
-    return f"{parts['icon']} **{escape_discord(parts['repo'])}**\n\n{body}\n<{parts['url']}>"
+    title = f"{parts['icon']} **{escape_discord(parts['repo'])}**"
+    workflow = f"⚙️ Workflow: ***{escape_discord(parts['workflow'])}***"
+    return f"{title}\n\n{workflow}\n\n{body}\n\n<{parts['url']}>"
 
 
 class handler(BaseHTTPRequestHandler):
