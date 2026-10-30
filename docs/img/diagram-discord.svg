@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1072 330" width="1072" height="330" role="img" aria-label="Discord: how a pipeline event reaches your channel">
+  <defs>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1c2670"/><stop offset="1" stop-color="#0a0f33"/></linearGradient>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#9aa3d6"/></marker>
+  </defs>
+  <rect width="1072" height="330" rx="22" fill="url(#card)"/>
+  <text x="36" y="46" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#ffffff">Discord: how a pipeline event reaches your channel</text>
+  <text x="36" y="68" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#9aa3d6">Numbers match the steps in the README.</text>
+  <line x1="230.0" y1="140" x2="298.0" y2="140" stroke="#9aa3d6" stroke-width="2" marker-end="url(#arr)"/>
+  <circle cx="264.0" cy="116" r="12" fill="#ffb347"/><text x="264.0" y="120.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1a1a33">1</text>
+  <line x1="502.0" y1="140" x2="570.0" y2="140" stroke="#9aa3d6" stroke-width="2" marker-end="url(#arr)"/>
+  <circle cx="536.0" cy="116" r="12" fill="#ffb347"/><text x="536.0" y="120.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1a1a33">2</text>
+  <line x1="774.0" y1="140" x2="842.0" y2="140" stroke="#9aa3d6" stroke-width="2" marker-end="url(#arr)"/>
+  <circle cx="808.0" cy="116" r="12" fill="#ffb347"/><text x="808.0" y="120.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1a1a33">3</text>
+  <rect x="30.0" y="101.0" width="196" height="78" rx="12" fill="#ffffff" fill-opacity="0.06" stroke="#6b73a3" stroke-width="1.5"/>
+  <text x="128" y="132" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#ffffff">GitHub</text>
+  <text x="128" y="151" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#c9d1f2">workflow_run webhook</text>
+  <text x="128" y="168" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#c9d1f2">queued · started · finished</text>
+  <rect x="302.0" y="101.0" width="196" height="78" rx="12" fill="#4cc3ff" fill-opacity="0.14" stroke="#4cc3ff" stroke-width="2.2"/>
+  <text x="400" y="132" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#ffffff">Vercel Function</text>
+  <text x="400" y="151" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#c9d1f2">api/notify.py</text>
+  <text x="400" y="168" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#c9d1f2">verify · format · send</text>
+  <rect x="574.0" y="101.0" width="196" height="78" rx="12" fill="#5865F2" fill-opacity="0.16" stroke="#5865F2" stroke-width="2.2"/>
+  <text x="672" y="132" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#ffffff">Discord webhook</text>
+  <text x="672" y="151" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#c9d1f2">POST to the channel URL</text>
+  <text x="672" y="168" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#c9d1f2">no bot account needed</text>
+  <rect x="846.0" y="101.0" width="196" height="78" rx="12" fill="#ffffff" fill-opacity="0.06" stroke="#6b73a3" stroke-width="1.5"/>
+  <text x="944" y="132" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#ffffff">Your channel</text>
+  <text x="944" y="151" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#c9d1f2">#deploys</text>
+  <text x="944" y="168" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12.5" fill="#c9d1f2">visible to all members</text>
+  <line x1="400" y1="215.0" x2="400" y2="183.0" stroke="#9aa3d6" stroke-width="1.6" stroke-dasharray="5 5" marker-end="url(#arr)"/>
+  <rect x="235.0" y="215.0" width="330" height="74" rx="12" fill="none" stroke="#9aa3d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="400" y="242" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">Environment variables</text>
+  <text x="400" y="262" text-anchor="middle" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#ffd9a0">DISCORD_WEBHOOK_URL</text>
+  <text x="400" y="280" text-anchor="middle" font-family="Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" fill="#ffd9a0">GITHUB_WEBHOOK_SECRET</text>
+  </svg>

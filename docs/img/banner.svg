@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 360" width="1280" height="360" role="img" aria-label="GitHubActionsBot: pipeline notifications for Telegram and Discord">
+  <defs>
+    <radialGradient id="bg" cx="22%" cy="70%" r="95%"><stop offset="0" stop-color="#2b3aa0"/><stop offset="1" stop-color="#0a0f33"/></radialGradient>
+    <linearGradient id="flame" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe066"/><stop offset="1" stop-color="#ff7a1a"/></linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e3e8ff"/><stop offset="0.55" stop-color="#ffffff"/><stop offset="1" stop-color="#c3cbef"/></linearGradient>
+  </defs>
+  <rect width="1280" height="360" fill="url(#bg)"/>
+  <g fill="#ffffff">
+    <circle cx="470" cy="60" r="2.5" opacity="0.8"/><circle cx="640" cy="300" r="2" opacity="0.6"/><circle cx="980" cy="52" r="2.6" opacity="0.8"/>
+    <circle cx="1180" cy="120" r="2" opacity="0.7"/><circle cx="1110" cy="300" r="2.4" opacity="0.7"/><circle cx="560" cy="40" r="2" opacity="0.6"/>
+  </g>
+  <g transform="translate(48 -22) scale(0.8)">
+  <!-- launch pad -->
+  <rect x="96" y="414" width="168" height="22" rx="8" fill="#3a4166"/>
+  <rect x="96" y="414" width="168" height="6" rx="3" fill="#59607f"/>
+
+  <!-- smoke at the pad -->
+  <g fill="#cfd5f5">
+    <circle cx="124" cy="404" r="22" opacity="0.55"/>
+    <circle cx="160" cy="396" r="26" opacity="0.5"/>
+    <circle cx="204" cy="400" r="24" opacity="0.5"/>
+    <circle cx="238" cy="406" r="18" opacity="0.5"/>
+  </g>
+
+  <!-- rocket (drawn pointing up, then rotated up-right) -->
+  <g transform="translate(272 262) rotate(40)">
+    <!-- flame -->
+    <path d="M-15 118 Q0 196 15 118 Z" fill="url(#flame)"/>
+    <path d="M-7 118 Q0 152 7 118 Z" fill="#fff4b0"/>
+
+    <!-- fins -->
+    <path d="M-36 52 L-64 114 L-36 96 Z" fill="#ff5a4d"/>
+    <path d="M36 52 L64 114 L36 96 Z" fill="#ff5a4d"/>
+
+    <!-- body -->
+    <path d="M0 -132 C26 -98 38 -42 38 28 L38 112 L-38 112 L-38 28 C-38 -42 -26 -98 0 -132 Z" fill="url(#body)"/>
+
+    <!-- nose cone -->
+    <path d="M0 -132 C15 -114 25 -92 29 -72 L-29 -72 C-25 -92 -15 -114 0 -132 Z" fill="#ff5a4d"/>
+
+    <!-- window -->
+    <circle cx="0" cy="-22" r="18" fill="#4cc3ff" stroke="#22307f" stroke-width="5"/>
+    <circle cx="-5" cy="-27" r="5" fill="#ffffff" opacity="0.75"/>
+
+    <!-- stripe -->
+    <rect x="-38" y="66" width="76" height="7" fill="#22307f" opacity="0.25"/>
+
+    <!-- nozzle -->
+    <rect x="-17" y="110" width="34" height="11" rx="3" fill="#59607f"/>
+  </g>
+
+  </g>
+  <text x="440" y="158" font-family="Helvetica, Arial, sans-serif" font-size="62" font-weight="800" fill="#ffffff">GitHubActionsBot</text>
+  <text x="442" y="206" font-family="Helvetica, Arial, sans-serif" font-size="25" fill="#c9d1f2">Pipeline notifications for Telegram and Discord</text>
+  <text x="442" y="246" font-family="Helvetica, Arial, sans-serif" font-size="18" fill="#9aa3d6">Queued · In progress · Success / Failure, with run time and a link</text>
+  <text x="442" y="278" font-family="Helvetica, Arial, sans-serif" font-size="18" fill="#9aa3d6">One small Python function, no servers to run</text>
+</svg>
