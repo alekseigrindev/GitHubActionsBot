@@ -25,7 +25,10 @@ def telegram_chat_ids():
 
 
 def send_telegram(text):
-    token = os.environ["TELEGRAM_TOKEN"]
+    # Optional: Telegram is skipped when no bot token is configured (Discord-only setup).
+    token = os.environ.get("TELEGRAM_TOKEN")
+    if not token:
+        return
     chat_ids = telegram_chat_ids()
     if not chat_ids:
         raise RuntimeError("TELEGRAM_CHAT_ID is empty")
