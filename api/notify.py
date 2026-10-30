@@ -18,17 +18,31 @@ def post_json(url, payload, headers=None):
     urllib.request.urlopen(req, timeout=4).read()
 
 
+def telegram_chat_ids():
+    # TELEGRAM_CHAT_ID may hold several ids separated by ";", e.g. "111;222;-100333".
+    raw = os.environ.get("TELEGRAM_CHAT_ID", "")
+    return [part.strip() for part in raw.split(";") if part.strip()]
+
+
 def send_telegram(text):
     token = os.environ["TELEGRAM_TOKEN"]
-    post_json(
-        f"https://api.telegram.org/bot{token}/sendMessage",
-        {
-            "chat_id": os.environ["TELEGRAM_CHAT_ID"],
-            "text": text,
-            "parse_mode": "HTML",
-            "disable_web_page_preview": True,
-        },
-    )
+    chat_ids = telegram_chat_ids()
+    if not chat_ids:
+        raise RuntimeError("TELEGRAM_CHAT_ID is empty")
+    for chat_id in chat_ids:
+        # One failing recipient (e.g. someone who never pressed Start) must not block the rest.
+        try:
+            post_json(
+                f"https://api.telegram.org/bot{token}/sendMessage",
+                {
+                    "chat_id": chat_id,
+                    "text": text,
+                    "parse_mode": "HTML",
+                    "disable_web_page_preview": True,
+                },
+            )
+        except Exception as exc:
+            print(f"telegram send to {chat_id} failed: {exc!r}")
 
 
 def send_discord(text):
