@@ -90,6 +90,17 @@ def run_duration(run):
     return format_duration((finished - started).total_seconds())
 
 
+def commit_line(run):
+    # "abc1234 Commit title" built from the run's head commit; None when GitHub sends neither.
+    commit = run.get("head_commit") or {}
+    sha = (commit.get("id") or run.get("head_sha") or "")[:7]
+    title = (commit.get("message") or "").strip().split("\n", 1)[0].strip()
+    if len(title) > 100:
+        title = title[:99].rstrip() + "…"
+    value = " ".join(part for part in (sha, title) if part)
+    return value or None
+
+
 def build_parts(data, action):
     """Collect the message content once; each messenger formats it its own way."""
     run = data["workflow_run"]
@@ -116,6 +127,9 @@ def build_parts(data, action):
         ("🌿", "Branch", branch),
         ("📊", "Status", status),
     ]
+    commit = commit_line(run)
+    if commit:
+        lines.insert(2, ("🔖", "Commit", commit))  # right after the branch
     if action == "completed":
         duration = run_duration(run)
         if duration:
