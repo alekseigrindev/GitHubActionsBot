@@ -22,6 +22,29 @@ It is one small Python function that runs on Vercel. GitHub calls it through a w
 - **Works for every workflow** in a repository (or a whole organization) without touching the workflows.
 - **Secure by default.** Every request is verified with GitHub's HMAC signature, secrets live in environment variables.
 
+## Contents
+
+- [Example message](#example-message)
+- [How it works](#how-it-works)
+  - [Telegram](#telegram) · [Discord](#discord)
+- [Requirements](#requirements)
+- [Deployment](#deployment)
+  1. [Get the code](#1-get-the-code) (GitHub)
+  2. [Deploy to Vercel](#2-deploy-to-vercel) (Vercel)
+  3. [Connect Telegram](#3-connect-telegram) (Telegram)
+  4. [Connect Discord](#4-connect-discord) (Discord)
+  5. [Set the environment variables](#5-set-the-environment-variables) (Vercel)
+  6. [Add the webhook in GitHub](#6-add-the-webhook-in-github) (GitHub)
+  7. [Test it](#7-test-it)
+- [What triggers a message](#what-triggers-a-message)
+- [Troubleshooting](#troubleshooting)
+- [Security notes](#security-notes)
+- [Project structure](#project-structure)
+- [Roadmap](#roadmap)
+- [Author](#author)
+- [Trademarks](#trademarks)
+- [License](#license)
+
 ## Example message
 
 ```
@@ -56,6 +79,10 @@ The duration is added to the final message only.
 ### Telegram
 
 <p align="center">
+  <img src="docs/img/brands/telegram.svg" alt="Telegram logo" width="48">
+</p>
+
+<p align="center">
   <img src="docs/img/diagram-telegram.svg" alt="Diagram: GitHub sends a webhook to a Vercel function, which calls the Telegram Bot API, which delivers the message to your chats" width="100%">
 </p>
 
@@ -64,6 +91,10 @@ The duration is added to the final message only.
 3. **Telegram → you.** Telegram delivers the message to each private chat or group.
 
 ### Discord
+
+<p align="center">
+  <img src="docs/img/brands/discord.png" alt="Discord logo" width="56">
+</p>
 
 <p align="center">
   <img src="docs/img/diagram-discord.svg" alt="Diagram: GitHub sends a webhook to a Vercel function, which posts to a Discord channel webhook, which shows the message in your channel" width="100%">
@@ -85,7 +116,20 @@ You can use both at once: set the variables for both and each run is sent to Tel
 
 Do steps 1, 2, 5, 6 and 7 always, and step 3 and/or 4 depending on where you want the messages.
 
+Every step starts with a label that shows which service you work in:
+
+| Label | Where you work |
+| --- | --- |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/img/brands/github-white.png"><img src="docs/img/brands/github-black.png" alt="" height="18" align="top"></picture> **GitHub** | github.com (repository, webhook) |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/img/brands/vercel-white.png"><img src="docs/img/brands/vercel-black.png" alt="Vercel" height="14" align="top"></picture> | vercel.com (project, variables) |
+| <img src="docs/img/brands/telegram.svg" alt="" width="18" align="top"> **Telegram** | the Telegram app |
+| <img src="docs/img/brands/discord.png" alt="" width="22" align="top"> **Discord** | the Discord app |
+
+---
+
 ### 1. Get the code
+
+> <picture><source media="(prefers-color-scheme: dark)" srcset="docs/img/brands/github-white.png"><img src="docs/img/brands/github-black.png" alt="" height="20" align="top"></picture> **GitHub**
 
 Fork this repository, or clone it and push it to your own GitHub account:
 
@@ -94,7 +138,11 @@ git clone https://github.com/alekseigrindev/GitHubActionsBot.git
 cd GitHubActionsBot
 ```
 
+---
+
 ### 2. Deploy to Vercel
+
+> <picture><source media="(prefers-color-scheme: dark)" srcset="docs/img/brands/vercel-white.png"><img src="docs/img/brands/vercel-black.png" alt="Vercel" height="16" align="top"></picture>
 
 **Option A: import from GitHub (recommended).** Open [vercel.com/new](https://vercel.com/new), pick your copy of the repository, leave **Framework Preset** on *Other* and click **Deploy**. Pushes to the repository then deploy automatically.
 
@@ -116,7 +164,11 @@ https://<your-project>.vercel.app/api/notify
 
 in a browser. You should see `deploy-notify is up`. Use the **production domain** of the project (the short `<project>.vercel.app` one), not the long per-deployment URL: Vercel's Deployment Protection can block the per-deployment URLs, and GitHub cannot sign in to Vercel.
 
+---
+
 ### 3. Connect Telegram
+
+> <img src="docs/img/brands/telegram.svg" alt="" width="22" align="top"> **Telegram** (skip this step if you only want Discord)
 
 **Create the bot**
 
@@ -144,7 +196,11 @@ Every person has to open the bot and press **Start** once. Telegram does not let
 
 If the token ever leaks, send `/revoke` to BotFather to get a new one.
 
+---
+
 ### 4. Connect Discord
+
+> <img src="docs/img/brands/discord.png" alt="" width="26" align="top"> **Discord** (skip this step if you only want Telegram)
 
 1. Create a Discord server (the **+** button in the app), or use an existing one.
 2. Create a text channel, for example `#deploys`. For a private channel, enable **Private Channel** in its settings and give access to the people or the role that should see it.
@@ -159,7 +215,11 @@ Good to know:
 - The bot never pings anyone: `@everyone`, `@here` and user mentions are disabled, even if a branch name contains them.
 - Anyone who has the webhook URL can post to your channel. Treat it like a password.
 
+---
+
 ### 5. Set the environment variables
+
+> <picture><source media="(prefers-color-scheme: dark)" srcset="docs/img/brands/vercel-white.png"><img src="docs/img/brands/vercel-black.png" alt="Vercel" height="16" align="top"></picture>
 
 In Vercel open your project → **Settings** → **Environment Variables** and add the variables you need (make sure *Production* is ticked):
 
@@ -174,7 +234,11 @@ Telegram is skipped when `TELEGRAM_TOKEN` is not set, and Discord is skipped whe
 
 **Variables only apply to new deployments.** After adding or changing them, redeploy (Vercel → *Deployments* → *Redeploy*, or `npx vercel --prod`).
 
+---
+
 ### 6. Add the webhook in GitHub
+
+> <picture><source media="(prefers-color-scheme: dark)" srcset="docs/img/brands/github-white.png"><img src="docs/img/brands/github-black.png" alt="" height="20" align="top"></picture> **GitHub**
 
 In the repository whose pipelines you want to watch open **Settings** → **Webhooks** → **Add webhook**:
 
@@ -189,6 +253,8 @@ In the repository whose pipelines you want to watch open **Settings** → **Webh
 Click **Add webhook**. GitHub immediately sends a `ping`; open the webhook → **Recent Deliveries** and check that the response is `200`. The function accepts the ping and sends nothing to your chat.
 
 To watch every repository of an organization at once, add the same webhook in the organization settings instead.
+
+---
 
 ### 7. Test it
 
@@ -280,6 +346,32 @@ Ideas that are not implemented yet:
 - Skipping the duplicated `in_progress` messages.
 - Retrying failed sends.
 
----
+## Author
 
-This project is not affiliated with or endorsed by GitHub, Telegram, Discord or Vercel. All product names and trademarks belong to their respective owners.
+Made by **@AlekseiGrinDev**.
+
+- GitHub: [<picture><source media="(prefers-color-scheme: dark)" srcset="docs/img/brands/github-white.png"><img src="docs/img/brands/github-black.png" alt="" height="18" align="top"></picture> @AlekseiGrinDev](https://github.com/AlekseiGrinDev)
+- LinkedIn: [<img src="docs/img/brands/linkedin.png" alt="" width="18" align="top"> @AlekseiGrinDev](https://www.linkedin.com/in/alekseigrindev/)
+- Telegram: [<img src="docs/img/brands/telegram.svg" alt="" width="18" align="top"> @AlekseiGrinDev](https://t.me/AlekseiGrinDev)
+- WhatsApp: [<img src="docs/img/brands/whatsapp.png" alt="" width="18" align="top"> @AlekseiGrinDev](https://wa.me/AlekseiGrinDev)
+
+Issues and pull requests are welcome.
+
+## Trademarks
+
+This project is independent. It is not affiliated with, sponsored by or endorsed by GitHub, Telegram, Discord or Vercel, and it does not officially represent any of them.
+
+The logos in this README are used unmodified, only to show which services the project works with. They are in `docs/img/brands/`, and each belongs to its owner:
+
+- **GitHub** and the Invertocat logo are trademarks of GitHub, Inc.
+- **Telegram** and its logo are trademarks of Telegram Messenger Inc.
+- **Discord** and its logo are trademarks of Discord Inc.
+- **WhatsApp** and its logo are trademarks of WhatsApp LLC.
+- **LinkedIn** and the LinkedIn logo are registered trademarks of LinkedIn Corporation.
+- **Vercel** marks are trademarks or registered trademarks of Vercel, Inc. or its affiliates in the US and other countries.
+
+These logos are not covered by this project's license. Their use is governed by each company's brand guidelines. If you reuse them, follow those guidelines.
+
+## License
+
+The code in this repository is released under the [MIT License](LICENSE): anyone can use, fork, change, sell and redistribute it, as long as the copyright notice stays with the code. The license does not apply to the third-party logos described above.
