@@ -29,7 +29,7 @@ It is one small Python function that runs on Vercel. GitHub calls it through a w
   - [Telegram](#telegram) · [Discord](#discord)
 - [Requirements](#requirements)
 - [Deployment](#deployment)
-  1. [Get the code](#1-get-the-code) (GitHub)
+  1. [Fork the repository](#1-fork-the-repository) (GitHub)
   2. [Deploy to Vercel](#2-deploy-to-vercel) (Vercel)
   3. [Connect Telegram](#3-connect-telegram) (Telegram)
   4. [Connect Discord](#4-connect-discord) (Discord)
@@ -127,16 +127,17 @@ Every step starts with a label that shows which service you work in:
 
 ---
 
-### 1. Get the code
+### 1. Fork the repository
 
 > <picture><source media="(prefers-color-scheme: dark)" srcset="docs/img/brands/github-white.png"><img src="docs/img/brands/github-black.png" alt="" height="20" align="top"></picture> **GitHub**
 
-Fork this repository, or clone it and push it to your own GitHub account:
+You need your own copy of the code, so that Vercel can build it from your GitHub account.
 
-```bash
-git clone https://github.com/alekseigrindev/GitHubActionsBot.git
-cd GitHubActionsBot
-```
+1. Open [github.com/alekseigrindev/GitHubActionsBot](https://github.com/alekseigrindev/GitHubActionsBot).
+2. Click **Fork** in the top right corner.
+3. Keep the suggested name (or pick your own) and click **Create fork**.
+
+You now have `github.com/<your-username>/GitHubActionsBot`. Nothing has to be cloned to your computer: Vercel works directly with this fork.
 
 ---
 
@@ -144,17 +145,17 @@ cd GitHubActionsBot
 
 > <picture><source media="(prefers-color-scheme: dark)" srcset="docs/img/brands/vercel-white.png"><img src="docs/img/brands/vercel-black.png" alt="Vercel" height="16" align="top"></picture>
 
-**Option A: import from GitHub (recommended).** Open [vercel.com/new](https://vercel.com/new), pick your copy of the repository, leave **Framework Preset** on *Other* and click **Deploy**. Pushes to the repository then deploy automatically.
+Everything is done on the Vercel website, with the fork from step 1.
 
-If the repository is missing from the list, open **Configure GitHub App** on that page (or GitHub → *Settings* → *Applications* → *Vercel* → *Configure*) and give the app access to the repository.
+1. Sign in at [vercel.com](https://vercel.com). The easiest way is **Continue with GitHub**, which also connects your GitHub account.
+2. On the dashboard click **Add New…** → **Project**.
+3. In the **Import Git Repository** list find your fork `GitHubActionsBot` and click **Import**.
+4. On the **Configure Project** screen leave everything as it is: **Framework Preset** stays on *Other*, **Root Directory** stays empty. You can change the project name here; it becomes the domain `<project>.vercel.app`.
+5. Click **Deploy** and wait until Vercel shows the success screen.
 
-**Option B: from your computer.**
+Later, every push to your fork deploys automatically.
 
-```bash
-npx vercel login
-npx vercel          # first run: creates and links the project
-npx vercel --prod   # production deployment
-```
+**The fork is not in the list?** On the same screen click **Adjust GitHub App Permissions** (or open GitHub → *Settings* → *Applications* → *Vercel* → *Configure*), allow access to the `GitHubActionsBot` repository and go back. This is also the fix for the message "Unable to fetch Vercel projects for repository".
 
 Vercel picks up `api/notify.py` automatically because Python files in `api/` become functions. When the deployment is finished, open
 
@@ -232,7 +233,7 @@ In Vercel open your project → **Settings** → **Environment Variables** and a
 
 Telegram is skipped when `TELEGRAM_TOKEN` is not set, and Discord is skipped when `DISCORD_WEBHOOK_URL` is not set, so you can use either one alone.
 
-**Variables only apply to new deployments.** After adding or changing them, redeploy (Vercel → *Deployments* → *Redeploy*, or `npx vercel --prod`).
+**Variables only apply to new deployments.** After adding or changing them, redeploy: Vercel → *Deployments* → the three dots next to the latest deployment → *Redeploy*.
 
 ---
 
