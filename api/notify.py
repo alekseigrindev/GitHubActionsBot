@@ -9,6 +9,15 @@ from datetime import datetime
 from http.server import BaseHTTPRequestHandler
 
 
+# Which run events send a message. Comment a line out to turn that message off,
+# uncomment it to turn it back on. Redeploy after changing.
+NOTIFY_ON = (
+    # "requested",    # run queued
+    # "in_progress",  # run started
+    "completed",      # run finished (success, failure, ...)
+)
+
+
 def post_json(url, payload, headers=None):
     req = urllib.request.Request(
         url,
@@ -196,7 +205,7 @@ class handler(BaseHTTPRequestHandler):
         data = json.loads(body)
         action = data.get("action")
         # requested: queued; in_progress: started running; completed: finished.
-        if action not in ("requested", "in_progress", "completed"):
+        if action not in NOTIFY_ON:
             return self._reply(200, "ignored")
 
         parts = build_parts(data, action)

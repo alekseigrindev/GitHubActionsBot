@@ -12,11 +12,11 @@
 
 # GitHubActionsBot
 
-Get a message in **Telegram** and/or **Discord** when a GitHub Actions pipeline is queued, starts running and finishes (with the result and the run time).
+Get a message in **Telegram** and/or **Discord** when a GitHub Actions pipeline finishes (with the result and the run time). Messages when a run is queued and when it starts are available too and can be switched on with one line.
 
 It is one small Python function that runs on Vercel. GitHub calls it through a webhook, so there is no server to maintain and nothing to add to your workflow files.
 
-- **Three stages per run:** queued, in progress, finished (success, failure, cancelled and so on).
+- **Result message by default.** Success, failure, cancelled and so on. Optional "queued" and "in progress" messages are one uncommented line away (see [What triggers a message](#what-triggers-a-message)).
 - **Telegram, Discord, or both.** Several Telegram recipients are supported.
 - **No dependencies.** Python standard library only, no `requirements.txt`.
 - **Works for every workflow** in a repository (or a whole organization) without touching the workflows.
@@ -87,7 +87,7 @@ The duration is added to the final message only.
 </p>
 
 1. **GitHub → function.** When a workflow run is queued, starts, or finishes, GitHub sends a signed `workflow_run` webhook to `/api/notify`.
-2. **Function → Telegram.** The function checks the signature, ignores everything that is not one of the three events, builds the message and calls `sendMessage` once for every chat id in `TELEGRAM_CHAT_ID`.
+2. **Function → Telegram.** The function checks the signature, ignores every event that is not switched on in `NOTIFY_ON`, builds the message and calls `sendMessage` once for every chat id in `TELEGRAM_CHAT_ID`.
 3. **Telegram → you.** Telegram delivers the message to each private chat or group.
 
 ### Discord
@@ -277,7 +277,7 @@ curl -i -X POST "$URL" \
 
 A `200` status and a message in your chat means the function, the secrets and the channel all work. `401` means the secret does not match.
 
-**Run a real workflow.** If the repository has no workflow yet, add `.github/workflows/hello.yml`, push it, and you will get the queued, started and finished messages:
+**Run a real workflow.** If the repository has no workflow yet, add `.github/workflows/hello.yml`, push it, and you will get the finished message (and the queued and started ones too, if you switched them on):
 
 ```yaml
 name: Hello
@@ -293,15 +293,25 @@ Replace the step with `- run: exit 1` to see a failure message.
 
 ## What triggers a message
 
-The function listens to GitHub's `workflow_run` event:
+The function listens to GitHub's `workflow_run` event. Which stages produce a message is set in one place, the `NOTIFY_ON` list at the top of [`api/notify.py`](api/notify.py):
 
-| `action` | Message | Notes |
-| --- | --- | --- |
-| `requested` | ⏳ Queued | The run was created. |
-| `in_progress` | 🚀 In progress | The run started executing. |
-| `completed` | ✅ / ❌ / 🚫 / ⏰ | Final message with the result and the duration. |
+```python
+NOTIFY_ON = (
+    # "requested",    # run queued
+    # "in_progress",  # run started
+    "completed",      # run finished (success, failure, ...)
+)
+```
 
-Any other event or action is acknowledged with `200` and ignored. The duration is the time between the run's start and its last update, so it can differ by a few seconds from what GitHub shows.
+By default only the result is sent. To get the other messages, remove the `#` in front of the line, commit, and let Vercel redeploy. Comment the line out again to switch the message off.
+
+| `action` | Message | On by default | Notes |
+| --- | --- | --- | --- |
+| `requested` | ⏳ Queued | no | The run was created. |
+| `in_progress` | 🚀 In progress | no | The run started executing. |
+| `completed` | ✅ / ❌ / 🚫 / ⏰ | yes | Final message with the result and the duration. |
+
+Any other event or action, and any stage that is commented out, is acknowledged with `200` and ignored. The duration is the time between the run's start and its last update, so it can differ by a few seconds from what GitHub shows.
 
 The function always answers GitHub quickly. If sending to Telegram or Discord fails, the error is written to the Vercel logs, and GitHub still sees a successful delivery.
 
@@ -317,7 +327,7 @@ Start with **Recent Deliveries** of the webhook in GitHub (status and response b
 | `200`, but no message | Check the Vercel logs. `telegram send to ... failed` with `403` means that person never pressed **Start**; with `401` the token is wrong. A missing `TELEGRAM_TOKEN` or `DISCORD_WEBHOOK_URL` is skipped silently, so check the variable names and that you redeployed. |
 | `200`, but nothing in Discord | `DISCORD_WEBHOOK_URL` is missing, the webhook was deleted, or it was copied incompletely. |
 | No deliveries at all in **Recent Deliveries** | **Workflow runs** is not ticked in the webhook, or the webhook is not active. |
-| Two "In progress" messages for one run | GitHub can deliver the `in_progress` event twice for the same run (the link in both messages is the same). It is not filtered yet. |
+| Two "In progress" messages for one run (only if you switched that message on) | GitHub can deliver the `in_progress` event twice for the same run (the link in both messages is the same). It is not filtered yet. |
 
 ## Security notes
 
